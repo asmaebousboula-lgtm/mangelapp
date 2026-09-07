@@ -1,0 +1,19 @@
+{
+	"appId": "de.hdhotels.technik",
+	"appName": "HD Technik",
+	"webDir": "capacitor/www",
+	"backgroundColor": "#0d0f12",
+	"server": {
+		"url": "https://mangelapp.netlify.app",
+		"cleartext": false,
+		"allowNavigation": [
+			"mangelapp.netlify.app"
+		]
+	},
+	"ios": {
+		"contentInset": "never"
+	},
+	"android": {
+		"allowMixedContent": false
+	}
+}
