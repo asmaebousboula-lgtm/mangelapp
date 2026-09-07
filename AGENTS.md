@@ -174,6 +174,17 @@ is mobile-first and installable as a PWA.
   for `cap copy`; it is not the app. There is no separate mobile build step — `pnpm cap:sync`
   only refreshes native config, and shipping a web change to Netlify ships it to both apps.
   `allowNavigation` is limited to our own host so external links leave the webview.
+- **The iOS shell's generated resources are committed on purpose.** `App.xcodeproj` lists
+  `capacitor.config.json`, `config.xml` and `public/` in its Resources build phase, so Xcode
+  fails the build when they are absent. Capacitor's default `ios/.gitignore` excludes exactly
+  those three because `cap sync` regenerates them — which meant the project only built after a
+  Node install plus `npx cap sync ios`. They are therefore tracked, and the matching ignore
+  rules removed, so `ios/App/App.xcodeproj` opens and builds straight from a fresh clone; the
+  one remaining dependency, `capacitor-swift-pm`, is a remote SPM package pinned to an exact
+  version in `CapApp-SPM/Package.swift` that Xcode resolves by itself. They are still generated
+  artefacts and not hand-edited: after changing `capacitor.config.ts` or `capacitor/www/`, run
+  `pnpm cap:sync` and commit the regenerated files. Android keeps its ignore rules unchanged —
+  Gradle builds it through the Node toolchain anyway, so it has no equivalent problem.
 - **iOS needs the camera usage descriptions.** `PhotoUploader` uses
   `<input type="file" capture="environment">`, which WKWebView answers with the system camera.
   `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` in `ios/App/App/Info.plist`
