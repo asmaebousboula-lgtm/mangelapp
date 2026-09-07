@@ -89,13 +89,17 @@ lint/tmp/
 # Android Profiling
 *.hprof
 
-# Cordova plugins for Capacitor
-capacitor-cordova-android-plugins
-
-# Copied web assets
-app/src/main/assets/public
-
-# Generated Config files
-app/src/main/assets/capacitor.config.json
-app/src/main/assets/capacitor.plugins.json
-app/src/main/res/xml/config.xml
+# Generated Capacitor files
+#
+# `capacitor-cordova-android-plugins/`, `app/src/main/assets/public/`,
+# `app/src/main/assets/capacitor.config.json`, `app/src/main/assets/capacitor.plugins.json`
+# and `app/src/main/res/xml/config.xml` are normally ignored because `npx cap sync android`
+# regenerates them. They are committed here on purpose, together with the vendored copy of the
+# Capacitor Android library in `capacitor-android/` (see its README): `settings.gradle`,
+# `app/build.gradle` and `app/capacitor.build.gradle` all reference them, so Gradle sync fails
+# without them. Committing them makes `android/` open and build straight after a fresh
+# `git clone` with JVM 21 and no Node toolchain — everything else Gradle downloads itself.
+#
+# They stay generated artefacts: re-run `pnpm cap:sync` after changing `capacitor.config.ts`
+# or `capacitor/www/`, and commit the result. The iOS shell is committed for the same reason,
+# see `ios/.gitignore`.

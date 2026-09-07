@@ -2,4 +2,18 @@ include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 
-apply from: 'capacitor.settings.gradle'
+// `cap sync` regenerates capacitor.settings.gradle pointing :capacitor-android at a path inside
+// node_modules, which only exists once the JS dependencies are installed. With an install
+// present that file stays authoritative, so `cap sync` keeps working exactly as before. Without
+// one — a fresh `git clone` opened straight in Android Studio, no Node — fall back to the copy
+// of the Capacitor Android library vendored in android/capacitor-android.
+//
+// Adding a Capacitor *plugin* puts another node_modules Gradle project in
+// capacitor.settings.gradle that this fallback does not know about; vendor it the same way and
+// extend the else branch. See android/capacitor-android/README.md.
+if (new File(rootDir, '../node_modules/@capacitor/android/capacitor').isDirectory()) {
+    apply from: 'capacitor.settings.gradle'
+} else {
+    include ':capacitor-android'
+    project(':capacitor-android').projectDir = new File(rootDir, 'capacitor-android')
+}

@@ -30,6 +30,7 @@ is mobile-first and installable as a PWA.
 
 ```
 ├── android/                          # generated Capacitor Android project
+│   └── capacitor-android/            # vendored @capacitor/android Gradle library
 ├── ios/                              # generated Capacitor Xcode project
 ├── capacitor/www/index.html          # webDir placeholder (see non-obvious decisions)
 ├── capacitor.config.ts               # appId, appName, server.url, native webview options
@@ -183,8 +184,23 @@ is mobile-first and installable as a PWA.
   one remaining dependency, `capacitor-swift-pm`, is a remote SPM package pinned to an exact
   version in `CapApp-SPM/Package.swift` that Xcode resolves by itself. They are still generated
   artefacts and not hand-edited: after changing `capacitor.config.ts` or `capacitor/www/`, run
-  `pnpm cap:sync` and commit the regenerated files. Android keeps its ignore rules unchanged —
-  Gradle builds it through the Node toolchain anyway, so it has no equivalent problem.
+  `pnpm cap:sync` and commit the regenerated files.
+- **The Android shell is a self-contained Gradle project.** For the same reason as iOS, and in
+  the same way: `android/` must open in Android Studio straight from a fresh clone, with JVM 21
+  and no Node. Capacitor's default `android/.gitignore` excludes
+  `capacitor-cordova-android-plugins/`, `app/src/main/assets/public/`,
+  `app/src/main/assets/capacitor.config.json`, `app/src/main/assets/capacitor.plugins.json` and
+  `app/src/main/res/xml/config.xml`, all of which `settings.gradle`, `app/build.gradle` and
+  `app/capacitor.build.gradle` reference — Gradle sync fails on the missing
+  `cordova.variables.gradle` before it gets anywhere. Those are therefore tracked and the ignore
+  rules removed. The other half of the problem is `capacitor.settings.gradle`, which `cap sync`
+  regenerates pointing `:capacitor-android` into `node_modules`: `android/capacitor-android/` is
+  a vendored copy of the Gradle library project from the `@capacitor/android` package, and
+  `settings.gradle` uses the generated file when an install is present and falls back to the
+  vendored copy when it is not. So `cap sync` stays the source of truth and a clone with no
+  toolchain still configures. Refresh the copy after bumping `@capacitor/android` — see
+  `android/capacitor-android/README.md`. Adding a Capacitor *plugin* adds another `node_modules`
+  Gradle project that the fallback does not cover; vendor it the same way.
 - **iOS needs the camera usage descriptions.** `PhotoUploader` uses
   `<input type="file" capture="environment">`, which WKWebView answers with the system camera.
   `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` in `ios/App/App/Info.plist`
