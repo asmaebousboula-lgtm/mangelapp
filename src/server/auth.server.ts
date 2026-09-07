@@ -9,9 +9,8 @@ export const SESSION_COOKIE = 'hdt_session'
 /**
  * Sessions are long-lived and slide forward on use, so a signed-in device stays signed in
  * until the person logs out or an admin deactivates the account. The absolute window only
- * ever expires devices that stopped being used altogether — which is also what makes the
- * cookie safe to persist inside the Capacitor webviews, where there is no "close the
- * browser" moment to fall back on.
+ * ever expires devices that stopped being used altogether — which is what makes the app
+ * usable on a phone that is only opened every few days.
  */
 const SESSION_DAYS = 180
 
@@ -51,8 +50,7 @@ const hashToken = (token: string) => createHash('sha256').update(token).digest('
 
 /**
  * `sameSite: 'lax'` keeps the cookie attached when the QR link is opened as a top-level
- * navigation, and it is a first-party cookie in the native apps too because the webviews
- * load the deployed site itself rather than a local bundle.
+ * navigation, e.g. from the camera app or a messenger.
  */
 const cookieOptions = () =>
   ({

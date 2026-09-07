@@ -24,16 +24,10 @@ is mobile-first and installable as a PWA.
 | File storage | Netlify Blobs |
 | Language | TypeScript 5.9 (strict) |
 | Deployment | Netlify (`@netlify/vite-plugin-tanstack-start`) |
-| Native apps | Capacitor 8 (iOS + Android shells around the deployed site) |
 
 ## Directory structure
 
 ```
-├── android/                          # generated Capacitor Android project
-│   └── capacitor-android/            # vendored @capacitor/android Gradle library
-├── ios/                              # generated Capacitor Xcode project
-├── capacitor/www/index.html          # webDir placeholder (see non-obvious decisions)
-├── capacitor.config.ts               # appId, appName, server.url, native webview options
 ├── db
 │   ├── schema.ts                     # Drizzle schema: hotels, rooms, users, sessions,
 │   │                                 # invites, tickets, ticketPhotos, ticketComments,
@@ -133,10 +127,10 @@ is mobile-first and installable as a PWA.
   needs a code for the daily sign-in — that is identifier + password.
 - **Sessions are long-lived and slide.** `SESSION_DAYS = 180`, refreshed on use (at most one
   write per 12 h via `lastSeenAt`/`RENEW_AFTER_MS`), so a device stays signed in until the
-  person logs out or an admin intervenes. That is what makes the cookie usable inside the
-  Capacitor webviews, which have no "closed the browser" moment. `currentUser()` re-checks
-  `status` on every request, so deactivating or deleting an account cuts access off at the
-  next request even on a device holding a valid cookie.
+  person logs out or an admin intervenes. That keeps the installed PWA usable on a phone that
+  is only opened every few days. `currentUser()` re-checks `status` on every request, so
+  deactivating or deleting an account cuts access off at the next request even on a device
+  holding a valid cookie.
 - **Deleting an employee never destroys attribution.** `deleteStaff` removes the row only when
   the person has no tickets, photos, comments, events or imports behind them. Otherwise it
   archives: `status = 'deleted'`, e-mail and username released to NULL, password hash scrubbed
@@ -167,51 +161,6 @@ is mobile-first and installable as a PWA.
   database (slug → id) rather than hard-coding them.
 - **Charts are plain CSS.** Dashboard statistics use shared-scale bars instead of a charting
   library, which keeps the client bundle small; no chart dependency is installed.
-- **The native apps are thin shells, not a second build.** Because the app is SSR with
-  Netlify server functions, there is no static bundle a webview could host. `capacitor.config.ts`
-  therefore sets `server.url` to `https://mangelapp.netlify.app`, so iOS and Android load the
-  deployed site and every existing route, session cookie and server function keeps working
-  unchanged. `webDir` points at `capacitor/www`, a committed placeholder page the CLI requires
-  for `cap copy`; it is not the app. There is no separate mobile build step — `pnpm cap:sync`
-  only refreshes native config, and shipping a web change to Netlify ships it to both apps.
-  `allowNavigation` is limited to our own host so external links leave the webview.
-- **The iOS shell's generated resources are committed on purpose.** `App.xcodeproj` lists
-  `capacitor.config.json`, `config.xml` and `public/` in its Resources build phase, so Xcode
-  fails the build when they are absent. Capacitor's default `ios/.gitignore` excludes exactly
-  those three because `cap sync` regenerates them — which meant the project only built after a
-  Node install plus `npx cap sync ios`. They are therefore tracked, and the matching ignore
-  rules removed, so `ios/App/App.xcodeproj` opens and builds straight from a fresh clone; the
-  one remaining dependency, `capacitor-swift-pm`, is a remote SPM package pinned to an exact
-  version in `CapApp-SPM/Package.swift` that Xcode resolves by itself. They are still generated
-  artefacts and not hand-edited: after changing `capacitor.config.ts` or `capacitor/www/`, run
-  `pnpm cap:sync` and commit the regenerated files.
-- **The Android shell is a self-contained Gradle project.** For the same reason as iOS, and in
-  the same way: `android/` must open in Android Studio straight from a fresh clone, with JVM 21
-  and no Node. Capacitor's default `android/.gitignore` excludes
-  `capacitor-cordova-android-plugins/`, `app/src/main/assets/public/`,
-  `app/src/main/assets/capacitor.config.json`, `app/src/main/assets/capacitor.plugins.json` and
-  `app/src/main/res/xml/config.xml`, all of which `settings.gradle`, `app/build.gradle` and
-  `app/capacitor.build.gradle` reference — Gradle sync fails on the missing
-  `cordova.variables.gradle` before it gets anywhere. Those are therefore tracked and the ignore
-  rules removed. The other half of the problem is `capacitor.settings.gradle`, which `cap sync`
-  regenerates pointing `:capacitor-android` into `node_modules`: `android/capacitor-android/` is
-  a vendored copy of the Gradle library project from the `@capacitor/android` package, and
-  `settings.gradle` uses the generated file when an install is present and falls back to the
-  vendored copy when it is not. So `cap sync` stays the source of truth and a clone with no
-  toolchain still configures. Refresh the copy after bumping `@capacitor/android` — see
-  `android/capacitor-android/README.md`. Adding a Capacitor *plugin* adds another `node_modules`
-  Gradle project that the fallback does not cover; vendor it the same way.
-- **iOS needs the camera usage descriptions.** `PhotoUploader` uses
-  `<input type="file" capture="environment">`, which WKWebView answers with the system camera.
-  `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` in `ios/App/App/Info.plist`
-  are load-bearing — iOS terminates the app on the first tap without them. Android deliberately
-  does *not* declare `android.permission.CAMERA`: Capacitor's `BridgeWebChromeClient` treats an
-  undeclared permission as "capture supported" and launches the capture intent directly, so
-  declaring it would only add a runtime prompt.
-- **Service workers may not register inside the iOS webview.** WKWebView only allows them for
-  app-bound domains, which would restrict the Capacitor bridge. Registration in `__root.tsx`
-  already fails silently, and the PWA is unaffected in browsers, so this is accepted rather
-  than worked around.
 - **Icons are generated without dependencies.** `scripts/generate-icons.mjs` rasterises the
   monogram and writes PNGs with a hand-rolled encoder (zlib + CRC32). Run `pnpm icons` after
   changing the mark.
