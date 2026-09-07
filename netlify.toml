@@ -1,0 +1,32 @@
+[build]
+  command = "vite build"
+  publish = "dist/client"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 3000
+  port = 8888
+
+# The app is an internal staff tool: never index it, never frame it.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(self), geolocation=(), microphone=()"
+    X-Robots-Tag = "noindex, nofollow"
+
+# Ticket photos and WhatsApp media are streamed per request behind a session
+# check, so no shared cache may ever hold on to them.
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "private, no-store"
+
+# The service worker must be re-checked on every load, otherwise a stale
+# version keeps serving an old shell after a deploy.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

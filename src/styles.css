@@ -1,0 +1,285 @@
+@import 'tailwindcss' source("../");
+
+/*
+ * HD HOTELS – TECHNIK
+ * Aesthetic: "night shift" — deep warm-neutral slate with a brass accent,
+ * borrowed from hotel signage, plus hard-working status colour coding.
+ * Dark by design: the app is mostly used in corridors and technical rooms.
+ */
+
+@theme {
+  --font-display: 'Bricolage Grotesque', 'Trebuchet MS', sans-serif;
+  --font-sans: 'Instrument Sans', 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-ink-950: #0d0f12;
+  --color-ink-900: #13161a;
+  --color-ink-850: #181c21;
+  --color-ink-800: #1f242a;
+  --color-ink-700: #2a3037;
+  --color-ink-600: #3a4149;
+
+  --color-fog-50: #f4f5f6;
+  --color-fog-100: #e6e8eb;
+  --color-fog-300: #b3bac1;
+  --color-fog-400: #8d959e;
+  --color-fog-500: #6a727b;
+
+  --color-brass-300: #e2caa0;
+  --color-brass-400: #d0b174;
+  --color-brass-500: #b8964f;
+  --color-brass-700: #6d5729;
+
+  --color-amber-signal: #e6a63c;
+  --color-steel-signal: #6fa0c9;
+  --color-moss: #6cab82;
+  --color-ember: #dd6150;
+  --color-ember-deep: #b0402f;
+
+  --radius-card: 14px;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --shell-pad-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+
+  html {
+    background-color: var(--color-ink-950);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-ink-950);
+    color: var(--color-fog-100);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+  }
+
+  /* Atmospheric base: a single warm light source top-left, faint grid below. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(120% 80% at 8% -10%, rgba(184, 150, 79, 0.13), transparent 55%),
+      radial-gradient(90% 60% at 100% 0%, rgba(111, 160, 201, 0.07), transparent 60%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.014), transparent 40%);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.16;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* keeps iOS from zooming on focus */
+  }
+
+  ::selection {
+    background: var(--color-brass-700);
+    color: var(--color-fog-50);
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-brass-400);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-700);
+    border-radius: 99px;
+    border: 3px solid var(--color-ink-950);
+  }
+}
+
+@layer components {
+  .surface {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0)) ,
+      var(--color-ink-900);
+    border: 1px solid var(--color-ink-700);
+    border-radius: var(--radius-card);
+  }
+
+  .surface-raised {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+      var(--color-ink-850);
+    border: 1px solid var(--color-ink-700);
+    border-radius: var(--radius-card);
+  }
+
+  .field {
+    width: 100%;
+    background: var(--color-ink-800);
+    border: 1px solid var(--color-ink-700);
+    border-radius: 10px;
+    padding: 0.7rem 0.85rem;
+    color: var(--color-fog-100);
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
+  }
+  .field::placeholder {
+    color: var(--color-fog-500);
+  }
+  .field:hover:not(:disabled) {
+    border-color: var(--color-ink-600);
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-brass-500);
+    background: var(--color-ink-850);
+  }
+  .field:disabled {
+    opacity: 0.55;
+  }
+
+  .label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--color-fog-400);
+    margin-bottom: 0.4rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-fog-500);
+  }
+
+  /* Left status rail used on every ticket card. */
+  .rail-offen {
+    box-shadow: inset 3px 0 0 var(--color-amber-signal);
+  }
+  .rail-in_bearbeitung {
+    box-shadow: inset 3px 0 0 var(--color-steel-signal);
+  }
+  .rail-erledigt {
+    box-shadow: inset 3px 0 0 var(--color-moss);
+  }
+
+  .tap {
+    transition:
+      transform 0.12s ease,
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .tap:active {
+    transform: scale(0.985);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade {
+  animation: fade 0.3s ease both;
+}
+.animate-sheet {
+  animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-ink-850);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.045), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
